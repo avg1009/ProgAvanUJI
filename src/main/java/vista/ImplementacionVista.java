@@ -49,18 +49,17 @@ public class ImplementacionVista implements InterrogaVista, InformaVista{
     private Controlador controlador;
     private InterrogaModelo modelo;
     private TextField textCoordenadas;
-
+    private TextField textEstimación; 
     ScatterChart scatterChart;
     ComboBox comboX;
     ComboBox comboY;
     ComboBox comboDistancias;
     ObservableList distancias;
     String labelNuevoPunto;
-    Distance distancia;
+
 
     static DistanceFactory distanceFactory;
 
-    private List<Double> sample = new LinkedList<>();
 
     public ImplementacionVista(final Stage stage) {
         this.stage = stage;
@@ -82,8 +81,8 @@ public class ImplementacionVista implements InterrogaVista, InformaVista{
 
         //Text Fields
         textCoordenadas = new TextField("Nuevo Punto");
-        TextField textLabel = new TextField("Label");
-        textLabel.setDisable(true);
+        TextField textEstimación = new TextField("Label");
+        textEstimación.setDisable(true);
 
         //Boton
         Button botonEstimate = new Button("Estimate");
@@ -97,7 +96,7 @@ public class ImplementacionVista implements InterrogaVista, InformaVista{
 
         //Combos Y
         comboY = new ComboBox<>(atributos);
-        comboY.getSelectionModel().select(comboY.getSelectionModel().getSelectedIndex());
+        comboY.getSelectionModel().select(comboY.getSelectionModel().getSelectedItem());
         comboY.getSelectionModel().select(0);
 
         comboY.setOnAction(e-> controlador.cambiaEjes());
@@ -153,7 +152,7 @@ public class ImplementacionVista implements InterrogaVista, InformaVista{
         borderPane.setBottom(comboX);
 
         //VBox DERECHA
-        VBox vbox=new VBox(OpenFileButton,comboDistancias,textCoordenadas,textLabel,botonEstimate);
+        VBox vbox=new VBox(OpenFileButton,comboDistancias,textCoordenadas,textEstimación,botonEstimate);
         BorderPane.setAlignment(vbox,Pos.BOTTOM_CENTER);
         borderPane.setRight(vbox);
         BorderPane.setAlignment(vbox,Pos.CENTER_RIGHT);
@@ -172,8 +171,8 @@ public class ImplementacionVista implements InterrogaVista, InformaVista{
     }
     @Override
     public void estimate(List<Double>sample){
-
-        if(distancias.get(comboDistancias.getSelectionModel().getSelectedIndex()).equals("Euclidean")){
+        Distance distancia;
+        if(comboDistancias.getSelectionModel().getSelectedIndex() == 0){
             distancia=distanceFactory.getDistance(DistanceType.EUCLIDIAN);
         }else{
             distancia=distanceFactory.getDistance(DistanceType.MANHATTAN);
@@ -182,6 +181,7 @@ public class ImplementacionVista implements InterrogaVista, InformaVista{
         knn.train(this.modelo.getTabla());
 
         labelNuevoPunto=knn.estimate(sample);
+
         System.out.println(labelNuevoPunto);
 
 
@@ -223,9 +223,11 @@ public class ImplementacionVista implements InterrogaVista, InformaVista{
     }
 
     public void leeEstimate(ActionEvent e) {
-        estimate(sample);
+        List<Double> sample = new LinkedList<>();
         String name = textCoordenadas.getText();
         name = name.replace(",", "");
+        nuevosDatos();
+        muestraTabla();
         XYChart.Series seriesPunto = new XYChart.Series();
         for (int i = 0; i < name.length(); i++) {
             char numero = name.charAt(i);
