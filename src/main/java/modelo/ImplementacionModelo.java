@@ -3,6 +3,7 @@ import java.util.ArrayList;
 
 import machineLearnig.CSV;
 import machineLearnig.Table;
+import machineLearnig.TableWithLabels;
 import vista.InformaVista;
 
 
@@ -11,7 +12,7 @@ public class ImplementacionModelo implements CambioModelo, InterrogaModelo {
 	private int posicionActual = 0;
 	private InformaVista vista;
 	private CSV newCsv=new CSV();
-	private Table table;
+	private TableWithLabels table;
 
 	public ImplementacionModelo(){}
 	
@@ -26,7 +27,7 @@ public class ImplementacionModelo implements CambioModelo, InterrogaModelo {
 
 
 	@Override
-	public Table getTabla(){
+	public TableWithLabels getTabla(){
 		return table;
 	}
 

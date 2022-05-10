@@ -1,7 +1,8 @@
 package modelo;
 
 import machineLearnig.Table;
+import machineLearnig.TableWithLabels;
 
 public interface InterrogaModelo {
-    Table getTabla();
+    TableWithLabels getTabla();
 }
