@@ -23,6 +23,5 @@ machineLearnig\RowWithLabel.class
 machineLearnig\Distance.class
 machineLearnig\DistanceFactory.class
 modelo\ImplementacionModelo.class
-vista\ImplementacionVista$1.class
 modelo\InterrogaModelo.class
 principal\Principal.class

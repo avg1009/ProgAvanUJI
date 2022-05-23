@@ -45,21 +45,36 @@ import java.io.IOException;
 
 
 public class ImplementacionVista implements InterrogaVista, InformaVista{
-    private final Stage stage;
+    public final Stage stage;
+
     private Controlador controlador;
     private InterrogaModelo modelo;
+    // texto donde se almacena las coordenadas
     private TextField textCoordenadas;
-    private TextField textEstimación; 
-    ScatterChart scatterChart;
-    ComboBox comboX;
-    ComboBox comboY;
-    ComboBox comboDistancias;
-    ObservableList distancias;
-    String labelNuevoPunto;
+    //texto donde mostraremos la nueva estimacion
+    private TextField textEstimación;
+    private ScatterChart scatterChart;
+    //grafico
 
 
+    //COMBO BOX X Y DISTANCIAS
+
+     ComboBox comboX;
+     ComboBox comboY;
+     ComboBox comboDistancias;
+
+    //Lista distancias
+    private ObservableList distancias;
+    //Lista atributos
+    private ObservableList atributos;
+    //String de la estimacion del nuevo punto
+    private String labelNuevoPunto;
+
+    //objeto de la fabrica de distancias
     static DistanceFactory distanceFactory;
 
+    //Boton estimate
+    private Button botonEstimate;
 
     public ImplementacionVista(final Stage stage) {
         this.stage = stage;
@@ -81,73 +96,57 @@ public class ImplementacionVista implements InterrogaVista, InformaVista{
 
         //Text Fields
         textCoordenadas = new TextField("Nuevo Punto");
-        TextField textEstimación = new TextField("Label");
-        textEstimación.setDisable(true);
+        textEstimación = new TextField("Label");
+        //textEstimación.setDisable(true);
+
 
         //Boton
-        Button botonEstimate = new Button("Estimate");
+        botonEstimate = new Button("Estimate");
         // llamaria al controlador para volver a crear la grafica añadiendo el punto de referencia
-         botonEstimate.setOnAction(e-> leeEstimate(e));
+        botonEstimate.setOnAction(e-> controlador.leeEstimate(e));
 
         //Listas
-        ObservableList atributos = FXCollections.observableArrayList("sepal length","sepal width" ,"petal length","petal witdth");
-        ObservableList distancias = FXCollections.observableArrayList("Euclidean" , "Manhattan");
+        atributos = FXCollections.observableArrayList("sepal length","sepal width" ,"petal length","petal witdth");
+        distancias = FXCollections.observableArrayList("Euclidean" , "Manhattan");
 
 
         //Combos Y
         comboY = new ComboBox<>(atributos);
         comboY.getSelectionModel().select(comboY.getSelectionModel().getSelectedItem());
         comboY.getSelectionModel().select(0);
-
+        //llama a controlador
         comboY.setOnAction(e-> controlador.cambiaEjes());
 
         //Combos X
         comboX = new ComboBox<>(atributos);
         comboX.getSelectionModel().select(comboX.getSelectionModel().getSelectedIndex());
         comboX.getSelectionModel().select(1);
+        //llama controlador
         comboX.setOnAction(e-> controlador.cambiaEjes());
-        //comboX.setOnAction(e -> comboX.getSelectionModel().getSelectedItem());
 
 
 
         BorderPane borderPane = new BorderPane();
         comboDistancias = new ComboBox<>(distancias);
+        //llama controlador en este caso es solo una llamada
         comboDistancias.setOnAction(e-> System.out.println(comboDistancias.getSelectionModel().getSelectedIndex()));
         comboDistancias.getSelectionModel().select(0);
 
 
 
-        //ESCOGER Y LEER UN FICHERO
-        FileChooser fileChooser=new FileChooser();
+        //ESCOGER Y LEER UN FICHERO controlador
 
-        Button OpenFileButton=new Button("OpenFile");
-        OpenFileButton.setOnAction(
-                new EventHandler<ActionEvent>() {
-                    @Override
-                    public void handle(ActionEvent actionEvent) {
-                        File file=fileChooser.showOpenDialog(stage);
-                        if(file!=null){
-                            String nombre=file.getName();
-                            //Crear un objeto CSV y ejecutar el método ReadTable
-                            controlador.crearTabla(nombre);
-                        }
-                    }
-                }
-
-        );
+        Button OpenFileButton = new Button("Abrir archivo");
+        OpenFileButton.setOnAction(e -> controlador.openFile());
 
         //Grafico
-        //Todavia no cambia dependiendo del elegido se queda con el original
-        NumberAxis xAxis=new NumberAxis();
-        xAxis.setLabel(comboX.getSelectionModel().getSelectedItem().toString());
-        NumberAxis yAxis=new NumberAxis();
-        yAxis.setLabel(comboY.getSelectionModel().getSelectedItem().toString());
+        //Establecer Ejes
+        controlador.creaTabla(comboX.getSelectionModel().getSelectedItem().toString(),comboY.getSelectionModel().getSelectedItem().toString());
 
-        scatterChart=new ScatterChart(xAxis,yAxis);
-        scatterChart.setTitle(comboX.getSelectionModel().getSelectedItem().toString() + " vs " + comboY.getSelectionModel().getSelectedItem().toString());
         //Border Pane
 
-        borderPane.setCenter(scatterChart);
+        //borderPane.setCenter(scatterChart);
+        borderPane.setCenter(modelo.getScatterChart());
         borderPane.setLeft(comboY);
         borderPane.setBottom(comboX);
 
@@ -169,80 +168,40 @@ public class ImplementacionVista implements InterrogaVista, InformaVista{
         stage.setScene(scene);
         stage.show();
     }
+
+    public void setScatterChart(ScatterChart scatterChart) {
+        this.scatterChart = scatterChart;
+    }
+
+    public File getFile(){
+        FileChooser fileChooser = new FileChooser();
+        return fileChooser.showOpenDialog(stage);
+    }
     @Override
-    public void estimate(List<Double>sample){
-        Distance distancia;
-        if(comboDistancias.getSelectionModel().getSelectedIndex() == 0){
-            distancia=distanceFactory.getDistance(DistanceType.EUCLIDIAN);
-        }else{
-            distancia=distanceFactory.getDistance(DistanceType.MANHATTAN);
-        }
-        KNN knn=new KNN(distancia);
-        knn.train(this.modelo.getTabla());
-
-        labelNuevoPunto=knn.estimate(sample);
-
-        System.out.println(labelNuevoPunto);
-
+    public void changeTextEstimacion(String label){
+        textEstimación = new TextField(label);
 
     }
     @Override
-    public void nuevosDatos(){
-        scatterChart.getData().remove(0,scatterChart.getData().size());
+    public int getIndexAtributosX() {
+        return comboX.getSelectionModel().getSelectedIndex();
     }
 
     @Override
-    public void muestraTabla( ){
-        TableWithLabels tabla=this.modelo.getTabla();
-
-        XYChart.Series seriesSetosa=new XYChart.Series();
-        XYChart.Series seriesVersicolor=new XYChart.Series();
-        XYChart.Series seriesVirginica=new XYChart.Series();
-        XYChart.Series seriesOther=new XYChart.Series();
-
-        for(Row row:tabla.row){
-
-            List<Double> filaData= row.getData();
-            RowWithLabel labelRow=(RowWithLabel) row;
-            String label=labelRow.getLabel();
-            if(label.equals("Iris-setosa")){
-                seriesSetosa.getData().add(new XYChart.Data(filaData.get(comboX.getSelectionModel().getSelectedIndex()),
-                        filaData.get(comboY.getSelectionModel().getSelectedIndex())));
-            }else if (label.equals("Iris-versicolor")){
-                seriesVersicolor.getData().add(new XYChart.Data(filaData.get(comboX.getSelectionModel().getSelectedIndex()),
-                        filaData.get(comboY.getSelectionModel().getSelectedIndex())));
-            }else if(label.equals("Iris-virginica")){
-                seriesVirginica.getData().add(new XYChart.Data(filaData.get(comboX.getSelectionModel().getSelectedIndex()),
-                        filaData.get(comboY.getSelectionModel().getSelectedIndex())));
-            }else {seriesOther.getData().add(new XYChart.Data(filaData.get(comboX.getSelectionModel().getSelectedIndex()),
-                    filaData.get(comboY.getSelectionModel().getSelectedIndex())));}
-
-        }
-
-        scatterChart.getData().addAll(seriesSetosa,seriesVirginica,seriesVersicolor,seriesOther);
+    public int getIndexAtributosY() {
+        return comboY.getSelectionModel().getSelectedIndex();
     }
 
-    public void leeEstimate(ActionEvent e) {
-        List<Double> sample = new LinkedList<>();
-        String name = textCoordenadas.getText();
-        name = name.replace(",", "");
-        nuevosDatos();
-        muestraTabla();
-        XYChart.Series seriesPunto = new XYChart.Series();
-        for (int i = 0; i < name.length(); i++) {
-            char numero = name.charAt(i);
-            double d1 = (double) numero;
-            //Hay que restar porque está en ASCII
-            d1 = d1 - 48;
-            sample.add(d1);
-        }
-
-        seriesPunto.getData().add(new XYChart.Data(sample.get(comboX.getSelectionModel().getSelectedIndex()),
-                sample.get(comboY.getSelectionModel().getSelectedIndex())));
-        scatterChart.getData().addAll(seriesPunto);
-        estimate(sample);
-
-        System.out.println(labelNuevoPunto);
-
+    @Override
+    public int getIndexDistancia() {
+        return comboDistancias.getSelectionModel().getSelectedIndex();
     }
+
+    @Override
+    public String getTextCoordenadas() {
+        return textCoordenadas.getText().toString();
+    }
+
+
+
 }

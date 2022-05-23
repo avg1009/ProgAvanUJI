@@ -1,9 +1,15 @@
 package vista;
 
+import javafx.scene.chart.ScatterChart;
+
 import java.util.List;
 
 public interface InformaVista {
-	void nuevosDatos();
-	void muestraTabla();
-	void estimate(List<Double> sample);
+	//La vista recive información
+
+	void setScatterChart(ScatterChart scatterChart);
+	int getIndexAtributosX();
+	 int getIndexAtributosY();
+	 int getIndexDistancia();
+	 void changeTextEstimacion(String label);
 }
